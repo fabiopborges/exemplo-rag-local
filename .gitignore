@@ -1,0 +1,16 @@
+# Segredos: nunca versionar a chave da API
+.env
+
+# Ambiente virtual e caches do Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Artefatos gerados pelo app
+faiss_index/
+docs/politicas_upload.pdf
+
+# IDE / SO
+.idea/
+.vscode/
+.DS_Store
