@@ -13,7 +13,7 @@ Para tornar o conceito visível, o app responde perguntas sobre políticas de RH
 Simplicidade é uma escolha pedagógica, e tem custo. Um sistema RAG corporativo precisa tratar, no mínimo, as dimensões abaixo. Este projeto **não** implementa nenhuma delas.
 
 | Dimensão | Perguntas que um ambiente produtivo precisa responder |
-|---|---|
+| --- | --- |
 | **Governança de dados** | Quem é dono de cada documento? Como versionar e aposentar políticas? Como garantir que a resposta reflete a versão vigente? Como tratar dados pessoais (LGPD)? |
 | **Segurança** | Como autenticar usuários e controlar o acesso por documento (RBAC/ABAC)? Como proteger a chave da API, os segredos e o índice? Como mitigar *prompt injection* e vazamento de dados para provedores externos? |
 | **Observabilidade** | Como registrar perguntas, trechos recuperados, latência, custo em tokens e erros? Como rastrear cada resposta até as suas fontes (*tracing*) e gerar auditoria? |
@@ -147,7 +147,7 @@ sequenceDiagram
 ### Decisões de arquitetura
 
 | Decisão | Motivo | Consequência |
-|---|---|---|
+| --- | --- | --- |
 | **Embeddings locais** (MiniLM) | Os documentos não saem da máquina na indexação e não há custo por embedding | Só o texto da pergunta e os trechos recuperados vão para a API do LLM |
 | **FAISS em disco** | Simples, sem servidor de banco vetorial | Não escala para muitos usuários ou documentos; indicado para uso individual ou demonstração |
 | **Hash SHA-256 do PDF** | Detecta troca de PDF e reindexa sem intervenção | Um único documento ativo por vez |
@@ -164,31 +164,38 @@ sequenceDiagram
 ## Como executar
 
 1. **Entre na pasta do projeto e crie um ambiente virtual** (recomendado):
+
    ```bash
    python -m venv .venv
    source .venv/bin/activate      # Windows: .venv\Scripts\activate
    ```
 
 2. **Instale as dependências:**
+
    ```bash
    pip install -r requirements.txt
    ```
 
 3. **Configure a chave da API:**
+
    ```bash
    cp .env.example .env
    ```
+
    Abra o arquivo `.env` e troque `sua_chave_aqui` pela sua chave:
-   ```
+
+   ```text
    DEEPSEEK_API_KEY=sk-...
    ```
 
 4. **Informe o PDF de políticas.** Coloque o arquivo em `docs/politicas.pdf`. Se preferir, pule este passo e envie um PDF pela barra lateral do app (passo seguinte).
 
 5. **Inicie o app:**
+
    ```bash
    streamlit run rag_politicas.py
    ```
+
    O navegador abre em <http://localhost:8501>. A primeira execução demora mais, porque baixa o modelo de embeddings e indexa o PDF.
 
 ## Como usar
@@ -209,7 +216,7 @@ Todo o app está em `rag_politicas.py` (cerca de 200 linhas). Esta seção é um
 **Biblioteca padrão do Python**
 
 | Import | Para que serve aqui |
-|---|---|
+| --- | --- |
 | `hashlib` | Calcula o SHA-256 do PDF, que funciona como "impressão digital" para saber se o arquivo mudou. |
 | `os` | Verifica se arquivos e pastas existem, monta caminhos e lê variáveis de ambiente. |
 | `shutil` | Apaga a pasta do índice (`rmtree`) quando é preciso reindexar. |
@@ -217,14 +224,14 @@ Todo o app está em `rag_politicas.py` (cerca de 200 linhas). Esta seção é um
 **Interface e configuração**
 
 | Import | Para que serve aqui |
-|---|---|
+| --- | --- |
 | `streamlit` (`st`) | Cria a interface web (chat, botões, upload) e oferece cache e estado de sessão. |
 | `dotenv.load_dotenv` | Lê o arquivo `.env` e coloca a `DEEPSEEK_API_KEY` no ambiente, sem deixar a chave no código. |
 
 **LangChain: as peças do pipeline RAG**
 
 | Import | Etapa do RAG | Para que serve |
-|---|---|---|
+| --- | --- | --- |
 | `PyPDFLoader` | Ingestão | Lê o PDF e devolve uma lista de páginas (`Document`), cada uma com texto e metadados (como o número da página). |
 | `RecursiveCharacterTextSplitter` | *Chunking* | Quebra as páginas em trechos menores, respeitando parágrafos e frases sempre que possível. |
 | `HuggingFaceEmbeddings` | *Embeddings* | Transforma cada trecho em um vetor numérico usando um modelo que roda localmente. |
@@ -244,7 +251,7 @@ Ficam no topo do arquivo e concentram os valores que você mais vai querer ajust
 **Pipeline RAG**
 
 | Função | Objetivo |
-|---|---|
+| --- | --- |
 | `hash_pdf(caminho)` | Devolve o SHA-256 do conteúdo do PDF, ou `None` se o arquivo não existir. |
 | `hash_do_indice()` | Lê o hash do PDF que gerou o índice já salvo em disco. Comparar os dois hashes revela se o PDF mudou. |
 | `carregar_ou_criar_vectorstore(pdf, assinatura)` | É o coração da indexação. Se o índice existe e veio do mesmo PDF, carrega do disco. Caso contrário, lê o PDF, divide em trechos (800 caracteres, 100 de sobreposição), gera os *embeddings* e salva o índice e o hash. Usa `@st.cache_resource`, e por isso o trabalho pesado ocorre uma vez por processo. |
@@ -254,7 +261,7 @@ Ficam no topo do arquivo e concentram os valores que você mais vai querer ajust
 **Interface**
 
 | Função | Objetivo |
-|---|---|
+| --- | --- |
 | `reindexar()` | Apaga o índice em disco e limpa o cache do Streamlit, forçando uma nova indexação. |
 | `mostrar_fontes(fontes)` | Exibe, dentro de um *expander*, a página e o texto dos trechos consultados. |
 | `sidebar()` | Desenha a barra lateral (limpar conversa, reindexar, upload de PDF) e decide qual PDF usar: o enviado, o padrão ou nenhum. |
@@ -269,7 +276,7 @@ Ficam no topo do arquivo e concentram os valores que você mais vai querer ajust
 ## Estrutura do projeto
 
 | Caminho | Descrição |
-|---|---|
+| --- | --- |
 | `rag_politicas.py` | Todo o app: pipeline RAG e interface Streamlit |
 | `docs/politicas.pdf` | PDF padrão com as políticas |
 | `docs/politicas_upload.pdf` | Cópia do último PDF enviado pela barra lateral (gerado pelo app) |
