@@ -294,3 +294,7 @@ Ficam no topo do arquivo e concentram os valores que você mais vai querer ajust
 ## Segurança
 
 O índice FAISS é carregado com `allow_dangerous_deserialization=True`. Isso é seguro aqui porque o índice é gerado pelo próprio app, mas nunca carregue um `faiss_index/` recebido de terceiros.
+
+## Licença
+
+Este projeto é distribuído sob a licença [MIT](LICENSE).
